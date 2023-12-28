@@ -1,11 +1,22 @@
+import React from 'react'
+import ReactDOM from 'react-dom/client'
+import Login from './components/Login.jsx'
+import Dashboard from './components/Dashboard.jsx';
 
-function App() {
+import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 
-  return (
-    <div>
-      Hello
-    </div>
-  )
-}
+const router = createBrowserRouter([
+  {
+    path: '/',
+    element: <Login/>
+  },
+  {
+    path: '/dashboard',
+    element: <Dashboard/>
+  }
+]);
 
-export default App
+
+ReactDOM.createRoot(document.getElementById('root')).render(
+  <RouterProvider router={router}/>
+)

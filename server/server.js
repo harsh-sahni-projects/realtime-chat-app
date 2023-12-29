@@ -4,7 +4,8 @@ const path = require('path');
 const app = express();
 const PORT = 3000;
 
-const createNewAccount = require('./routes/create-new-account.js');
+const { router: userManagerRouter } = require('./routes/user-manager.js');
+const { router: loginLogoutRouter } = require('./routes/login-logout.js');
 
 app.use(express.json());
 
@@ -14,7 +15,8 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use('/', createNewAccount);
+app.use('/', userManagerRouter);
+app.use('/', loginLogoutRouter)
 
 // ------ Initialise database files -------
 const DB_FOLDER = path.join(__dirname, '/db');

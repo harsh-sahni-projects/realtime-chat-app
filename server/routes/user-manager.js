@@ -7,7 +7,7 @@ const USERS_FILE_PATH = __dirname + '/../db/users.csv';
 router.post('/create-new-account', (req, res) => {
   try {
     let { username, password, confirmPassword } = req.body;
-    username = username.trim();
+    username = username.trim().toLowerCase();
     
     if (!fs.existsSync(USERS_FILE_PATH)) {
       console.log('DEBUG: User.json file missing');
@@ -16,8 +16,9 @@ router.post('/create-new-account', (req, res) => {
   
     const restrictedUsernames = ['username', 'null'];
   
-    if (_userAlreadyExists(username)
-      || (restrictedUsernames.includes(username.toLowerCase())))
+    if (getUserDetailsArr(username)
+      || (restrictedUsernames.includes(username.toLowerCase()))
+    )
       return res.status(409).send('User already exists'); // 409 = Conflict
     
     const joiningDate = new Date();
@@ -35,14 +36,18 @@ router.post('/create-new-account', (req, res) => {
   }
 });
 
-function _userAlreadyExists(username) {
+function getUserDetailsArr(username) {
   const allUsers = fs.readFileSync(USERS_FILE_PATH, 'utf8').split('\n');
-  const thisUser = allUsers.find(userDetails => userDetails.split(',')[0] == username);
-  return thisUser
+  let thisUser = allUsers.find(userDetails => userDetails.split(',')[0] == username);
+  if (thisUser) thisUser = thisUser.split(',');
+  return thisUser;
 }
 
 router.get('/create-new-account', (req, res) => {
   res.send('Hi GET fromsadf router');
 })
 
-module.exports = router;
+module.exports = {
+  router,
+  getUserDetailsArr
+};

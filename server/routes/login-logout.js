@@ -18,13 +18,12 @@ router.post('/login', (req, res) => {
     const savedPassword = user.splice(1,1)[0];
     
     if (password !== savedPassword) return res.status(401).send('Incorrect password');
-
     const userDetails = {
       username: user[0],
       joiningDate: user[1],
       avatar: user[2],
       bio: user[3],
-      friends: user[4] == 'null' ? [] : user[4]
+      friends: JSON.parse(user[4])
     }
     res.send(userDetails);
   } catch (err) {
@@ -32,6 +31,11 @@ router.post('/login', (req, res) => {
     res.status(500).send('Server error');
   }
 });
+
+router.post('/logout', (req, res) => {
+  console.log('Logout success');
+  res.send('Logout successful');
+})
 
 module.exports = {
   router

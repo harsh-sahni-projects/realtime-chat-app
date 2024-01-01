@@ -1,13 +1,17 @@
 import axios from 'axios';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
 import { SERVER_URL } from '../assets/constants';
+import { authActions } from '../store/auth-slice';
+import { userActions } from '../store/user-slice';
 
 const LoginForm = (props) => {
   const { setSignupFormVisible } = props;
   const [ username, setUsername ] = useState();
   const [ password, setPassword ] = useState();
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   const handleLogin = async (e) => {
     try {
@@ -15,6 +19,10 @@ const LoginForm = (props) => {
       const creds = { username, password };
       const endpoint = SERVER_URL + '/login';
       const res = await axios.post(endpoint, creds);
+      const userDetails = res.data;
+      dispatch(authActions.login());
+      dispatch(userActions.setUser(userDetails));
+      console.log('LoginForm.jsx: User details received:', userDetails);
       navigate('/dashboard')
     } catch(err) {
       const errMsg = (err?.response?.data) ? err.response.data : err.message;

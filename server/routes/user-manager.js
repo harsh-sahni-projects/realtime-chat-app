@@ -7,14 +7,14 @@ const USERS_FILE_PATH = __dirname + '/../db/users.csv';
 router.post('/create-new-account', (req, res) => {
   try {
     let { username, password, confirmPassword } = req.body;
-    username = username.trim().toLowerCase();
+    username = username.trim();
     
     if (!fs.existsSync(USERS_FILE_PATH)) {
-      console.log('DEBUG: User.json file missing');
+      console.log('user-manager.js: User.json file missing');
       return res.status(500).send('Server Error: Unable to create user, please contact administrator');
     }
   
-    const restrictedUsernames = ['username', 'null'];
+    const restrictedUsernames = ['username'];
   
     if (getUserDetailsArr(username)
       || (restrictedUsernames.includes(username.toLowerCase()))
@@ -22,9 +22,9 @@ router.post('/create-new-account', (req, res) => {
       return res.status(409).send('User already exists'); // 409 = Conflict
     
     const joiningDate = new Date();
-    const avatar = 'null';
-    const bio = 'null';
-    const friends = 'null';
+    const avatar = '';
+    const bio = 'Hi I am on Chatly';
+    const friends = '[]';
     const userDetails = [username, password, joiningDate, avatar, bio, friends].join(',');
   
     fs.appendFileSync(USERS_FILE_PATH, '\n'+userDetails)
@@ -38,7 +38,9 @@ router.post('/create-new-account', (req, res) => {
 
 function getUserDetailsArr(username) {
   const allUsers = fs.readFileSync(USERS_FILE_PATH, 'utf8').split('\n');
-  let thisUser = allUsers.find(userDetails => userDetails.split(',')[0] == username);
+  let thisUser = allUsers.find(userDetails => {
+    return userDetails.split(',')[0].toLowerCase() == username.toLowerCase()
+  });
   if (thisUser) thisUser = thisUser.split(',');
   return thisUser;
 }

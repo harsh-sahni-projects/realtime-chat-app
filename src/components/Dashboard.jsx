@@ -1,22 +1,23 @@
+import axios from 'axios';
 import nochatSvg from '/nochat.svg';
 import { IoIosLogOut } from "react-icons/io";
 import { useNavigate } from 'react-router';
+import { useSelector, useDispatch } from 'react-redux';
+import { SERVER_URL } from '../assets/constants';
+import { authActions } from '../store/auth-slice';
+import { userActions } from '../store/user-slice';
 
 const Dashboard = () => {
-  const userDetails = {
-    username: 'Harsh',
-    bio: 'Hi there, I am on Chatly!',
-    friends: ['Joe', 'Shiendler', 'Stephen', 'Melinda Gates', 'Zuk']
-  }
-  const activeFriend = 'Joe';
+  const userDetails = useSelector(state => state.user.user);
+  const activeFriend = useSelector(state => state.user.activeFriend);
 
   return (
-    <div className="flex h-lvh">
+    <div className="flex h-screen min-h-screen">
       <ProfileSection
         userDetails={userDetails}
         className="w-[20%] p-4 flex flex-col
           bg-gradient-to-b1 from-violet-400 to-blue-300 bg-violet-600 text-white"/>
-      <Contacts
+      <Friends
         userDetails={userDetails} activeFriend={activeFriend}
         className="w-[20%] p-4"/>
       <ChatSection
@@ -30,11 +31,24 @@ const Dashboard = () => {
 function ProfileSection(props) {
   const classes = props.className;
   const { username, bio } = props.userDetails;
+  const dispatch = useDispatch();
   const navigate = useNavigate();
 
 
-  const handleLogout = () => {
-    navigate('/');
+  const handleLogout = async () => {
+    try {
+      const endpoint = SERVER_URL + '/logout';
+      const res = await axios.post(endpoint);
+      if (res.status == 200) {
+        dispatch(authActions.logout());
+        dispatch(userActions.setUser(null));
+        navigate('/');
+      }
+    } catch (err) {
+      const errMsg = err?.response?.data ?? err.message;
+      console.log(err);
+      alert(errMsg);
+    }
   }
 
   return (
@@ -58,7 +72,7 @@ function ProfileSection(props) {
   )
 }
 
-function Contacts(props) {
+function Friends(props) {
   const { friends } = props.userDetails;
   const classes = props.className;
   return (

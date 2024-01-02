@@ -1,7 +1,8 @@
 import axios from 'axios';
 import nochatSvg from '/nochat.svg';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { IoIosLogOut } from "react-icons/io";
+import { IoMdAdd } from "react-icons/io";
 import { useNavigate } from 'react-router';
 import { useSelector, useDispatch } from 'react-redux';
 import { SERVER_URL } from '../assets/constants';
@@ -26,7 +27,7 @@ const Dashboard = () => {
           bg-gradient-to-b1 from-violet-400 to-blue-300 bg-violet-600 text-white"/>
       <Friends
         userDetails={userDetails} activeFriend={activeFriend}
-        className="w-[20%] p-4"/>
+        className="w-[20%] p-4 relative"/>
       <ChatSection
         userDetails={userDetails} activeFriend={activeFriend}
         className="w-[60%] p-4 border-l-2"
@@ -82,12 +83,17 @@ function ProfileSection(props) {
 function Friends(props) {
   const friends = props.userDetails?.friends ?? [];
   const classes = props.className;
+  const [addFriendFormVisible, setAddFriendFormVisible] = useState(true);
+
   return (
     <div className={classes}>
       <Header>
-        <h1 className="text-xl font-semibold text-slate-800 pb-2">Messages</h1>
+        <h1 className="text-xl font-semibold text-violet-800 pb-2">Messages</h1>
       </Header>
-      <input type="text" className="bg-slate-100 rounded-md p-2 mb-2 w-full" placeholder="Search contacts"/>
+      {!addFriendFormVisible &&
+        <input type="text" className="bg-slate-100 rounded-md p-2 mb-2 w-full"
+              placeholder="Search contacts"/>}
+      {addFriendFormVisible && <AddFriendForm cancel={() => setAddFriendFormVisible(false)}/>}
       {friends.map((friend, i) => (
         <div key={i} className="p-2 flex hover:bg-violet-100 hover:shadow-sm cursor-pointer rounded-md">
           <section>
@@ -98,6 +104,27 @@ function Friends(props) {
           </section>
         </div>
       ))}
+      <div className="flex justify-center items-center w-min h-min rounded-full p-2 absolute bottom-3
+        right-3 bg-violet-700 hover:bg-violet-800 hover:shadow-lg text-white text-2xl
+        cursor-pointer select-none active:translate-y-1 ease-in-out duration-75"
+        onClick={() => setAddFriendFormVisible(state => !state)}>
+        <IoMdAdd className="inline"/>
+      </div>
+    </div>
+  )
+}
+
+function AddFriendForm(props) {
+  const cancelFn = props.cancel;
+  return (
+    <div className="flex flex-col">
+      <input type="text" placeholder="Enter friend's username here"
+        className="p-1 border-b-2 border-violet-700 outline-none my-2 text-violet-700"/>
+      <div className="flex gap-2">
+        <button className="border-2 rounded-md text-violet-700 w-1/2 border-violet-700 hover:shadow-md"
+            onClick={() => cancelFn()}>Cancel</button>
+        <button className="bg-violet-700 hover:bg-violet-800 hover:shadow-md text-white p-2 rounded-md w-1/2">Add Friend</button>
+      </div>
     </div>
   )
 }

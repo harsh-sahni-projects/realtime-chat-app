@@ -1,5 +1,6 @@
 import axios from 'axios';
 import nochatSvg from '/nochat.svg';
+import { useEffect } from 'react';
 import { IoIosLogOut } from "react-icons/io";
 import { useNavigate } from 'react-router';
 import { useSelector, useDispatch } from 'react-redux';
@@ -8,8 +9,14 @@ import { authActions } from '../store/auth-slice';
 import { userActions } from '../store/user-slice';
 
 const Dashboard = () => {
+
+  const navigate = useNavigate();
   const userDetails = useSelector(state => state.user.user);
   const activeFriend = useSelector(state => state.user.activeFriend);
+
+  useEffect(() => {
+    if (!userDetails) return navigate('/');
+  }, []);
 
   return (
     <div className="flex h-screen min-h-screen">
@@ -30,7 +37,7 @@ const Dashboard = () => {
 
 function ProfileSection(props) {
   const classes = props.className;
-  const { username, bio } = props.userDetails;
+  const { username, bio } = props.userDetails ?? { username: '', bio: ''};
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
@@ -73,7 +80,7 @@ function ProfileSection(props) {
 }
 
 function Friends(props) {
-  const { friends } = props.userDetails;
+  const friends = props.userDetails?.friends ?? [];
   const classes = props.className;
   return (
     <div className={classes}>

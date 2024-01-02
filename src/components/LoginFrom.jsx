@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { SERVER_URL } from '../assets/constants';
@@ -12,6 +12,12 @@ const LoginForm = (props) => {
   const [ password, setPassword ] = useState();
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const usernameInput = useRef(null);
+
+  useEffect(() => {
+    if (usernameInput.current)
+      usernameInput.current.focus();
+  },[])
 
   const handleLogin = async (e) => {
     try {
@@ -39,7 +45,7 @@ const LoginForm = (props) => {
       <form className="flex flex-col" onSubmit={handleLogin}>
         <label htmlFor="username"
           className="font-bold m-2">Username</label>
-        <input type="text" id="username" placeholder="" autoComplete="off"
+        <input type="text" ref={usernameInput} id="username" placeholder="" autoComplete="off"
           onChange={e => setUsername(e.target.value.trim().toLocaleLowerCase())}
           className="outline-none border-2 px-4 py-2 rounded-full w-96 focus:border-violet-400"/>
         <label htmlFor="password"

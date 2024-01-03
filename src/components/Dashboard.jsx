@@ -1,5 +1,6 @@
 import axios from 'axios';
 import nochatSvg from '/nochat.svg';
+import profileIcon from '/profile-icon.png';
 import { useEffect, useState } from 'react';
 import { IoIosLogOut } from "react-icons/io";
 import { IoMdAdd } from "react-icons/io";
@@ -65,7 +66,9 @@ function ProfileSection(props) {
         <Header>
           <h1 className="text-4xl font-bold text-center">Chatly</h1>
         </Header>
-        <div className="text-center bg-slate-200 rounded-full py-5 w-[100px] h-[100px] self-center"></div>
+        <div className="flex justify-center">
+          <img src={profileIcon} alt="Profile image here" className="w-[100px] h-[100px]"/>
+        </div>
         <h2 className="text-4xl py-3 text-center font-semibold">{username}</h2>
         <h3>{bio}</h3>
       </section>

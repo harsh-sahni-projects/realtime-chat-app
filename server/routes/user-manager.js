@@ -45,10 +45,6 @@ function getUserDetailsArr(username) {
   return thisUser;
 }
 
-router.get('/create-new-account', (req, res) => {
-  res.send('Hi GET fromsadf router');
-})
-
 module.exports = {
   router,
   getUserDetailsArr

@@ -3,8 +3,14 @@ const express = require('express');
 const router = express.Router();
 
 const { getUserDetailsArr } = require('./user-manager.js');
+const { getNewToken } = require('../common/token-manager.js');
+const auth = require('../common/auth.js');
 
-router.post('/login', (req, res) => {
+const cookieParser = require('cookie-parser');
+
+router.use(cookieParser());
+
+router.post('/login', async (req, res) => {
   try {
     let { username, password } = req.body;
     if (!username) return res.status(400).send('Invalid username');
@@ -25,6 +31,15 @@ router.post('/login', (req, res) => {
       bio: user[3],
       friends: JSON.parse(user[4])
     }
+
+    const token = await getNewToken(username);
+    console.log('login.js token:', token);
+    res.cookie('token', token, {
+      httpOnly: true,
+      secure: true,
+      maxAge: 60 * 60 * 1000 // ms
+    })
+
     res.send(userDetails);
   } catch (err) {
     console.log('ERROR: While login', err);
@@ -32,9 +47,11 @@ router.post('/login', (req, res) => {
   }
 });
 
-router.post('/logout', (req, res) => {
-  console.log('Logout success');
-  res.send('Logout successful');
+router.post('/logout', auth, (req, res) => {
+  res.cookie('token', '', {
+    expires: new Date(0)
+  });
+  res.send('Logged out successfully');
 })
 
 module.exports = {

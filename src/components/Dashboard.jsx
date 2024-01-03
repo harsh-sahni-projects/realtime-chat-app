@@ -9,6 +9,9 @@ import { useSelector, useDispatch } from 'react-redux';
 import { SERVER_URL } from '../assets/constants';
 import { authActions } from '../store/auth-slice';
 import { userActions } from '../store/user-slice';
+import { useRef } from 'react';
+
+axios.defaults.withCredentials = true;
 
 const Dashboard = () => {
 
@@ -88,10 +91,16 @@ function Friends(props) {
   const classes = props.className;
   const [addFriendFormVisible, setAddFriendFormVisible] = useState(true);
 
+  const toggleAddFriendForm = () => {
+    setAddFriendFormVisible(state => !state);
+  }
+
   return (
     <div className={classes}>
       <Header>
-        <h1 className="text-xl font-semibold text-violet-800 pb-2">Messages</h1>
+        <h1 className="text-xl font-semibold text-violet-800 pb-2">
+          {addFriendFormVisible ? "Add Friend" : "Messages"}
+        </h1>
       </Header>
       {!addFriendFormVisible &&
         <input type="text" className="bg-slate-100 rounded-md p-2 mb-2 w-full"
@@ -110,7 +119,7 @@ function Friends(props) {
       <div className="flex justify-center items-center w-min h-min rounded-full p-2 absolute bottom-3
         right-3 bg-violet-700 hover:bg-violet-800 hover:shadow-lg text-white text-2xl
         cursor-pointer select-none active:translate-y-1 ease-in-out duration-75"
-        onClick={() => setAddFriendFormVisible(state => !state)}>
+        onClick={toggleAddFriendForm}>
         <IoMdAdd className="inline"/>
       </div>
     </div>
@@ -119,14 +128,27 @@ function Friends(props) {
 
 function AddFriendForm(props) {
   const cancelFn = props.cancel;
+  const friendUsernameInput = useRef(null);
+
+  const addFriend = async () => {
+    let endpoint = SERVER_URL + '/add-friend';
+  }
+
+  useEffect(() => {
+    friendUsernameInput.current.focus();
+  },[])
+
   return (
     <div className="flex flex-col">
-      <input type="text" placeholder="Enter friend's username here"
+      <input type="text" ref={friendUsernameInput} placeholder="Enter friend's username here"
         className="p-1 border-b-2 border-violet-700 outline-none my-2 text-violet-700"/>
       <div className="flex gap-2">
         <button className="border-2 rounded-md text-violet-700 w-1/2 border-violet-700 hover:shadow-md"
             onClick={() => cancelFn()}>Cancel</button>
-        <button className="bg-violet-700 hover:bg-violet-800 hover:shadow-md text-white p-2 rounded-md w-1/2">Add Friend</button>
+        <button className="bg-violet-700 hover:bg-violet-800 hover:shadow-md text-white p-2 rounded-md w-1/2"
+          onClick={addFriend}>
+          Add Friend
+        </button>
       </div>
     </div>
   )

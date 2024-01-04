@@ -60,6 +60,8 @@ function ProfileSection(props) {
       const errMsg = err?.response?.data ?? err.message;
       console.log(err);
       alert(errMsg);
+      if (err?.response?.status == 401) 
+        navigate('/');
     }
   }
 

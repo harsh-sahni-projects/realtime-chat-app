@@ -2,7 +2,7 @@
 const express = require('express');
 const router = express.Router();
 
-const { getUserDetailsArr } = require('./user-manager.js');
+const { getUserDetails, verifyPassword } = require('./user-manager.js');
 const { getNewToken } = require('../common/token-manager.js');
 const auth = require('../common/auth.js');
 
@@ -13,20 +13,13 @@ router.post('/login', async (req, res) => {
     if (!password) return res.status(400).send('Invalid password');
 
     username = username.trim().toLowerCase();
-  
-    const user = getUserDetailsArr(username);
-    if (!user) return res.status(404).send('Incorrect username');
-
-    const savedPassword = user.splice(1,1)[0];
     
-    if (password !== savedPassword) return res.status(401).send('Incorrect password');
-    const userDetails = {
-      username: user[0],
-      joiningDate: user[1],
-      avatar: user[2],
-      bio: user[3],
-      friends: JSON.parse(user[4])
-    }
+    const userDetails = getUserDetails(username);
+    if (!userDetails)
+      return res.status(404).send('Incorrect username');
+
+    if (!verifyPassword(username, password))
+      return res.status(401).send('Incorrect password');
 
     const token = await getNewToken(username);
     res.cookie('token', token, {

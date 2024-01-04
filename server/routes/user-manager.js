@@ -36,16 +36,38 @@ router.post('/create-new-account', (req, res) => {
   }
 });
 
-function getUserDetailsArr(username) {
+function getUserDetails(username) {
   const allUsers = fs.readFileSync(USERS_FILE_PATH, 'utf8').split('\n');
-  let thisUser = allUsers.find(userDetails => {
+  let user = allUsers.find(userDetails => {
     return userDetails.split(',')[0].toLowerCase() == username.toLowerCase()
   });
-  if (thisUser) thisUser = thisUser.split(',');
-  return thisUser;
+  if (!user) return null;
+
+  user = user.split(',');
+  const userDetails = {
+    username: user[0],
+    // password from user[1] skipped
+    joiningDate: user[2],
+    avatar: user[3],
+    bio: user[4],
+    friends: JSON.parse(user[5])
+  }
+  return userDetails;
+}
+
+function verifyPassword(username, password) {
+  const allUsers = fs.readFileSync(USERS_FILE_PATH, 'utf8').split('\n');
+  let user = allUsers.find(userDetails => {
+    return userDetails.split(',')[0].toLowerCase() == username.toLowerCase()
+  });
+  if (!user) return false;
+
+  const savedPassword = user.split(',')[1];
+  return savedPassword === password;
 }
 
 module.exports = {
   router,
-  getUserDetailsArr
+  getUserDetails,
+  verifyPassword
 };

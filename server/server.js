@@ -7,6 +7,7 @@ const PORT = 3000;
 
 const { router: userManagerRouter } = require('./routes/user-manager.js');
 const { router: loginLogoutRouter } = require('./routes/login-logout.js');
+const { router: checkTokenRouter } = require('./routes/check-token.js');
 
 app.use(express.json());
 app.use(cookieParser());
@@ -19,7 +20,8 @@ app.use((req, res, next) => {
 });
 
 app.use('/', userManagerRouter);
-app.use('/', loginLogoutRouter)
+app.use('/', loginLogoutRouter);
+app.use('/', checkTokenRouter);
 
 // ------ Initialise database files -------
 const DB_FOLDER = path.join(__dirname, '/db');

@@ -6,10 +6,6 @@ const { getUserDetailsArr } = require('./user-manager.js');
 const { getNewToken } = require('../common/token-manager.js');
 const auth = require('../common/auth.js');
 
-const cookieParser = require('cookie-parser');
-
-router.use(cookieParser());
-
 router.post('/login', async (req, res) => {
   try {
     let { username, password } = req.body;
@@ -33,7 +29,6 @@ router.post('/login', async (req, res) => {
     }
 
     const token = await getNewToken(username);
-    console.log('login.js token:', token);
     res.cookie('token', token, {
       httpOnly: true,
       secure: true,

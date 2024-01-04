@@ -89,7 +89,7 @@ function ProfileSection(props) {
 function Friends(props) {
   const friends = props.userDetails?.friends ?? [];
   const classes = props.className;
-  const [addFriendFormVisible, setAddFriendFormVisible] = useState(true);
+  const [addFriendFormVisible, setAddFriendFormVisible] = useState(false);
 
   const toggleAddFriendForm = () => {
     setAddFriendFormVisible(state => !state);

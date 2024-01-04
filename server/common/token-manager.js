@@ -29,7 +29,6 @@ const getNewToken = async (username, expiryTime = JWT_EXPITY_TIME) => {
     console.log('ERR:', err);
     throw err;
   }
-  
 }
 
 const _decryptToken = (token) => {
@@ -47,7 +46,7 @@ const verifyToken = (encryptedToken) => {
   try {
     const decryptedToken = _decryptToken(encryptedToken);
     const decodedToken = jwt.verify(decryptedToken, JWT_SECRET);
-    return true;
+    return decodedToken;
   } catch (err) {
     console.log(err);
     console.log('Above error occurred while verifying token (token-manager.js)');

@@ -11,3 +11,4 @@ This is a realtime chat application
 * ExpressJS
 * Cookies & JWTs
 * Socket.io
+* MongoDB

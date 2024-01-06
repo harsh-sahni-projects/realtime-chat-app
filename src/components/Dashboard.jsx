@@ -1,11 +1,15 @@
 import axios from 'axios';
-import nochatSvg from '/nochat.svg';
-import profileIcon from '/profile-icon.png';
 import { useEffect, useState } from 'react';
-import { IoIosLogOut } from "react-icons/io";
-import { IoMdAdd } from "react-icons/io";
 import { useNavigate } from 'react-router';
 import { useSelector, useDispatch } from 'react-redux';
+
+import { IoIosLogOut } from "react-icons/io";
+import { IoMdAdd } from "react-icons/io";
+import { HiOutlineDotsHorizontal } from "react-icons/hi";
+
+import nochatSvg from '/nochat.svg';
+import profileIcon from '/profile-icon.png';
+
 import { SERVER_URL } from '../assets/constants';
 import { authActions } from '../store/auth-slice';
 import { userActions } from '../store/user-slice';
@@ -39,7 +43,7 @@ const Dashboard = () => {
       }
     }
     checkToken();
-  }, []);
+  }, []); 
 
   return (
     <div className="flex h-screen min-h-screen">
@@ -107,12 +111,31 @@ function ProfileSection(props) {
 }
 
 function Friends(props) {
-  const friends = props.userDetails?.friends ?? [];
+  const dispatch = useDispatch();
+  const [friends, setFriends] = useState(props.userDetails?.friends ?? []);
   const classes = props.className;
   const [addFriendFormVisible, setAddFriendFormVisible] = useState(false);
+  const [friendsListLoading, setFriendsListLoading] = useState(false);
 
   const toggleAddFriendForm = () => {
     setAddFriendFormVisible(state => !state);
+  }
+
+  const refreshFriendsListFn = async () => {
+    setFriendsListLoading(true);
+    try {
+      const endpoint = SERVER_URL + '/get-friends-list';
+      const res = await axios.get(endpoint);
+      const friends = res.data;
+      setFriends([...friends]);
+      dispatch(userActions.updateFriendsList(friends))
+    } catch (err) {
+      const errMsg = err?.response?.data ?? err.message;
+      console.log(err);
+      alert(errMsg);
+    } finally {
+      setFriendsListLoading(false);
+    }
   }
 
   return (
@@ -124,9 +147,20 @@ function Friends(props) {
       </Header>
       {!addFriendFormVisible &&
         <input type="text" className="bg-slate-100 rounded-md p-2 mb-2 w-full"
-              placeholder="Search contacts"/>}
-      {addFriendFormVisible && <AddFriendForm cancel={() => setAddFriendFormVisible(false)}/>}
-      {friends.map((friend, i) => (
+              placeholder="Search friends"/>}
+      {addFriendFormVisible &&
+        <AddFriendForm
+          cancel={() => setAddFriendFormVisible(false)}
+          refreshFriendsListFn={refreshFriendsListFn}
+        />
+      }
+      {friendsListLoading &&
+        <div className="p-2 font-semibold animate-pulse">
+          <span className="">Refreshing</span> <HiOutlineDotsHorizontal className="inline"/>
+        </div>
+      }
+
+      {!friendsListLoading && friends.map((friend, i) => (
         <div key={i} className="p-2 flex hover:bg-violet-100 hover:shadow-sm cursor-pointer rounded-md">
           <section>
             <div className="border-2 border-violet-100 w-[50px] h-[50px] bg-slate-100 rounded-full"></div>
@@ -148,18 +182,28 @@ function Friends(props) {
 
 function AddFriendForm(props) {
   const cancelFn = props.cancel;
+  const refreshFriendsListFn = props.refreshFriendsListFn;
   const friendUsernameInput = useRef(null);
   const [friendName, setFriendName] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
   const addFriend = async () => {
+    setIsLoading(true);
     try {
       let endpoint = SERVER_URL + '/add-friend';
-      let res = await axios.post(endpoint, {friendName});
-      console.log('add frined res:', res.data); 
+      let res = await axios.post(endpoint, { friendName });
+      if (!res.data) {
+        alert('ERROR');
+        return;
+      }
+      refreshFriendsListFn();
+      cancelFn();
     } catch (err) {
       let errMsg = err?.response?.data ?? err.message;
       console.log(err);
       alert(errMsg);
+    } finally {
+      setIsLoading(false);
     }
   }
 
@@ -176,8 +220,9 @@ function AddFriendForm(props) {
         <button className="border-2 rounded-md text-violet-700 w-1/2 border-violet-700 hover:shadow-md"
             onClick={() => cancelFn()}>Cancel</button>
         <button className="bg-violet-700 hover:bg-violet-800 hover:shadow-md text-white p-2 rounded-md w-1/2"
-          onClick={addFriend}>
-          Add Friend
+          onClick={addFriend} disabled={isLoading}>
+          {!isLoading && <span>Add Friend</span>}
+          {isLoading && <HiOutlineDotsHorizontal className="inline animate-ping"/>}
         </button>
       </div>
     </div>

@@ -41,11 +41,12 @@ router.post('/create-new-account', async (req, res) => {
     }
 
     // ADD USER TO DB
+    const date = new Date();
     const userDetails = {
       username,
       password,
-      joiningDate: new Date(),
-      lastActive: this.joiningDate,
+      joiningDate: date,
+      lastActive: date,
       avatar: '',
       bio: 'Hi, I am on Chatly',
       friends: [],

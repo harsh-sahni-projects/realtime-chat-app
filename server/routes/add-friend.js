@@ -3,8 +3,6 @@ const auth = require('../common/auth');
 const { getUserDetails, addFriend } = require('./user-manager');
 const router = express.Router();
 
-const USERS_FILE_PATH = __dirname + '/../db/users.csv';
-
 router.post('/add-friend', auth, async (req, res) => {
   try {
     const friendName = req.body.friendName?.trim();

@@ -7,6 +7,7 @@ const { router: userManagerRouter } = require('./routes/user-manager.js');
 const { router: loginLogoutRouter } = require('./routes/login-logout.js');
 const { router: checkTokenRouter } = require('./routes/check-token.js');
 const { router: addFriendRouter } = require('./routes/add-friend.js');
+const { router: getFriendsListRouter } = require('./routes/get-friends-list.js');
 
 const PORT = process.env.PORT;
 
@@ -26,6 +27,7 @@ app.use('/', userManagerRouter);
 app.use('/', loginLogoutRouter);
 app.use('/', checkTokenRouter);
 app.use('/', addFriendRouter);
+app.use('/', getFriendsListRouter);
 
 // ------ Initialise database files -------
 // const DB_FOLDER = path.join(__dirname, '/db');

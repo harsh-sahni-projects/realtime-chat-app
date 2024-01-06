@@ -13,6 +13,9 @@ const userSlice = createSlice({
     },
     setActiveFriend(state, action) {
       state.activeFriend = action.payload
+    },
+    updateFriendsList(state, action) {
+      state.user.friends = [...action.payload]
     }
   }
 });

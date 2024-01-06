@@ -138,6 +138,10 @@ function Friends(props) {
     }
   }
 
+  useEffect(() => {
+    // refreshFriendsListFn();
+  }, [])
+
   return (
     <div className={classes}>
       <Header>
@@ -145,7 +149,7 @@ function Friends(props) {
           {addFriendFormVisible ? "Add Friend" : "Messages"}
         </h1>
       </Header>
-      {!addFriendFormVisible &&
+      {!friendsListLoading && !addFriendFormVisible &&
         <input type="text" className="bg-slate-100 rounded-md p-2 mb-2 w-full"
               placeholder="Search friends"/>}
       {addFriendFormVisible &&
@@ -155,15 +159,17 @@ function Friends(props) {
         />
       }
       {friendsListLoading &&
-        <div className="p-2 font-semibold animate-pulse">
-          <span className="">Refreshing</span> <HiOutlineDotsHorizontal className="inline"/>
+        <div className="p-2 mb-2 animate-pulse">
+          <span className="">Refreshing</span> <HiOutlineDotsHorizontal className="ml-1 inline animate-ping"/>
         </div>
       }
 
-      {!friendsListLoading && friends.map((friend, i) => (
+      {!addFriendFormVisible && friends.map((friend, i) => (
         <div key={i} className="p-2 flex hover:bg-violet-100 hover:shadow-sm cursor-pointer rounded-md">
           <section>
-            <div className="border-2 border-violet-100 w-[50px] h-[50px] bg-slate-100 rounded-full"></div>
+            <div className="w-[50px] h-[50px] bg-slate-100 rounded-full">
+              <img src={profileIcon} alt="Profile image here" className=""/>
+            </div>
           </section>
           <section className="border-0 flex items-center ml-2">
             <div>{friend}</div>
@@ -263,7 +269,7 @@ function EmptyChatSection() {
   return (
     <div className="flex flex-col w-full h-full justify-center items-center">
       <img src={nochatSvg} className="w-[30%] select-none"/>
-      <p className="mt-4 text-gray-400 italic">No contact selected. Please select a contact to chat or add a new contact.</p>
+      <p className="mt-4 text-gray-400 italic">Please select a friend to chat or click on add a new friend button.</p>
     </div>
   )
 }

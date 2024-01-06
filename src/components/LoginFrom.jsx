@@ -2,6 +2,9 @@ import axios from 'axios';
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
+
+import { HiOutlineDotsHorizontal } from "react-icons/hi";
+
 import { SERVER_URL } from '../assets/constants';
 import { authActions } from '../store/auth-slice';
 import { userActions } from '../store/user-slice';
@@ -10,6 +13,7 @@ const LoginForm = (props) => {
   const { setSignupFormVisible } = props;
   const [ username, setUsername ] = useState();
   const [ password, setPassword ] = useState();
+  const [ isLoading, setIsLoading ] = useState(false);
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const usernameInput = useRef(null);
@@ -20,6 +24,7 @@ const LoginForm = (props) => {
   },[])
 
   const handleLogin = async (e) => {
+    setIsLoading(true);
     try {
       e.preventDefault();
       const creds = { username, password };
@@ -28,12 +33,13 @@ const LoginForm = (props) => {
       const userDetails = res.data;
       dispatch(authActions.login());
       dispatch(userActions.setUser(userDetails));
-      console.log('LoginForm.jsx: User details received:', userDetails);
       navigate('/dashboard')
     } catch(err) {
       const errMsg = (err?.response?.data) ? err.response.data : err.message;
       console.log(err);
       alert(errMsg);
+    } finally {
+      setIsLoading(false);
     }
   }
   const showSignupForm = () => {
@@ -54,8 +60,10 @@ const LoginForm = (props) => {
           onChange={e => setPassword(e.target.value)}
           className="outline-none border-2 px-4 py-2 rounded-full w-96 focus:border-violet-400" />
         <button
-          className="w-96 rounded-full text-white bg-violet-800 hover:bg-violet-900 p-3 my-4 mt-6 font-semibold">
-          Login
+          className="w-96 rounded-full text-white bg-violet-800 hover:bg-violet-900 p-3 my-4 mt-6 font-semibold"
+          disabled={isLoading}
+        >
+          {!isLoading && <span>Login</span>} {isLoading && <HiOutlineDotsHorizontal className="inline animate-ping"/>}
         </button>
         <div className="mt-2 ml-2">
           <span

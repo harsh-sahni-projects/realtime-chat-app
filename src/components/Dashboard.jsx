@@ -14,13 +14,31 @@ import { useRef } from 'react';
 axios.defaults.withCredentials = true;
 
 const Dashboard = () => {
-
+  const dispatch = useDispatch();
   const navigate = useNavigate();
   const userDetails = useSelector(state => state.user.user);
   const activeFriend = useSelector(state => state.user.activeFriend);
 
   useEffect(() => {
-    if (!userDetails) return navigate('/');
+    const checkToken = async () => {
+      try {
+        if (!userDetails) return navigate('/');
+    
+        const endpoint = SERVER_URL + '/check-token'; 
+        await axios.post(endpoint);
+      } catch (err) {
+        console.log('Dashboard checktoken err:', err);
+        if (err?.response?.data) {
+          alert(err.response.data);
+          dispatch(userActions.setUser(null));
+          dispatch(authActions.logout());
+          navigate('/');
+        } else {
+          alert(err.message);
+        }
+      }
+    }
+    checkToken();
   }, []);
 
   return (
@@ -131,9 +149,18 @@ function Friends(props) {
 function AddFriendForm(props) {
   const cancelFn = props.cancel;
   const friendUsernameInput = useRef(null);
+  const [friendName, setFriendName] = useState('');
 
   const addFriend = async () => {
-    let endpoint = SERVER_URL + '/add-friend';
+    try {
+      let endpoint = SERVER_URL + '/add-friend';
+      let res = await axios.post(endpoint, {friendName});
+      console.log('add frined res:', res.data); 
+    } catch (err) {
+      let errMsg = err?.response?.data ?? err.message;
+      console.log(err);
+      alert(errMsg);
+    }
   }
 
   useEffect(() => {
@@ -143,6 +170,7 @@ function AddFriendForm(props) {
   return (
     <div className="flex flex-col">
       <input type="text" ref={friendUsernameInput} placeholder="Enter friend's username here"
+        onChange={(e) => setFriendName(e.target.value)}
         className="p-1 border-b-2 border-violet-700 outline-none my-2 text-violet-700"/>
       <div className="flex gap-2">
         <button className="border-2 rounded-md text-violet-700 w-1/2 border-violet-700 hover:shadow-md"

@@ -46,7 +46,7 @@ const LoginForm = (props) => {
         <label htmlFor="username"
           className="font-bold m-2">Username</label>
         <input type="text" ref={usernameInput} id="username" placeholder="" autoComplete="off"
-          onChange={e => setUsername(e.target.value.trim().toLocaleLowerCase())}
+          onChange={e => setUsername(e.target.value.trim())}
           className="outline-none border-2 px-4 py-2 rounded-full w-96 focus:border-violet-400"/>
         <label htmlFor="password"
           className="font-bold mt-6 ml-2 mb-2">Password</label>

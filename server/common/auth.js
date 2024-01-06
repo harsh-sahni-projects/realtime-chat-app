@@ -1,7 +1,7 @@
 const { getUserDetails } = require('../routes/user-manager.js');
 const { verifyToken } = require('./token-manager.js');
 
-const auth = (req, res, next) => {
+const auth = async (req, res, next) => {
   try {
     const token = req.cookies?.token;
 
@@ -11,7 +11,7 @@ const auth = (req, res, next) => {
       const decodedToken = verifyToken(token);
       const username = decodedToken.username;
       
-      const userDetails = getUserDetails(username);
+      const userDetails = await getUserDetails(username);
       if (!userDetails)
         return res.status(401).send('Invalid user');
       

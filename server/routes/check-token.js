@@ -3,9 +3,9 @@ const auth = require('../common/auth');
 const { getUserDetails } = require('./user-manager');
 const router = express.Router();
 
-router.post('/check-token', auth, (req, res) => {
+router.post('/check-token', auth, async (req, res) => {
   const username = req.credentials.username;
-  const userDetails = getUserDetails(username);
+  const userDetails = await getUserDetails(username);
   
   res.send(userDetails);
 });

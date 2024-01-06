@@ -4,11 +4,15 @@ import { useNavigate } from "react-router-dom";
 import { FaArrowLeftLong } from "react-icons/fa6";
 import { IoIosCheckboxOutline  } from "react-icons/io";
 import { SERVER_URL } from '../assets/constants';
+import { useDispatch } from "react-redux";
+import { userActions } from "../store/user-slice";
+import { authActions } from "../store/auth-slice";
 
 
 const SignupForm = (props) => {
   const { setSignupFormVisible } = props;
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -71,9 +75,12 @@ const SignupForm = (props) => {
       }
       const endpoint = SERVER_URL + '/create-new-account';
       const res = await axios.post(endpoint, payload);
+      console.log(res);
       if (res.status == 200) {
-        // navigate('/dashboard');
-        alert(res.data);
+        dispatch(userActions.setUser(res.data));
+        dispatch(authActions.login());
+        navigate('/dashboard');
+        // alert(res.data);
       }
     } catch (err) {
       const errMsg = (err?.response?.data) ? err.response.data : err.message;

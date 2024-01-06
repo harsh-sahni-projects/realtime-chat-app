@@ -1,10 +1,8 @@
 const { MongoClient, ServerApiVersion } = require('mongodb');
 const uri = process.env.DB_URI;
-console.log(uri)
 
-const getClient = async () => {
+const getDbClient = async () => {
   try {
-    console.log('URI:', uri);
     const client = new MongoClient(uri, {
       serverApi: {
         version: ServerApiVersion.v1,
@@ -12,7 +10,7 @@ const getClient = async () => {
         deprecationErrors: true,
       }
     });
-    return client;
+    return await client.connect();
   } catch (err) {
     console.log(err);
     throw err;
@@ -20,4 +18,4 @@ const getClient = async () => {
 
 }
 
-module.exports = getClient;
+module.exports = getDbClient;

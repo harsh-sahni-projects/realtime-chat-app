@@ -1,73 +1,164 @@
-const fs = require('fs');
 const express = require('express');
 const router = express.Router();
 
-const USERS_FILE_PATH = __dirname + '/../db/users.csv';
+const { getNewToken } = require('../common/token-manager.js');
+const getDbClient = require('../common/db-client.js');
+const DB_NAME = process.env.DB_NAME;
+const COLL_NAME = 'users';
 
-router.post('/create-new-account', (req, res) => {
+router.post('/create-new-account', async (req, res) => {
+  let client;
   try {
     let { username, password, confirmPassword } = req.body;
     username = username.trim();
     
-    if (!fs.existsSync(USERS_FILE_PATH)) {
-      console.log('user-manager.js: User.json file missing');
-      return res.status(500).send('Server Error: Unable to create user, please contact administrator');
-    }
-  
-    const restrictedUsernames = ['username'];
-  
-    if (getUserDetailsArr(username)
-      || (restrictedUsernames.includes(username.toLowerCase()))
-    )
-      return res.status(409).send('User already exists'); // 409 = Conflict
+    if (!username.length || !password.length)
+      return res.status(400).send('Invalid username or password');
     
-    const joiningDate = new Date();
-    const avatar = '';
-    const bio = 'Hi I am on Chatly';
-    const friends = '[]';
-    const userDetails = [username, password, joiningDate, avatar, bio, friends].join(',');
-  
-    fs.appendFileSync(USERS_FILE_PATH, '\n'+userDetails)
-  
-    res.send('User created');
+    if (password !== confirmPassword)
+      return res.status(400).send('Passwords don\'t match');
+
+    // CHECK - SYMBOLS IN USERNAME
+    const restrictedSymbols = [',', '/', '\\', '\'', '"', '%', '[', ']', '{', '}', '(', ')'];
+
+    const symbolsInUsername = (() => {
+      let chunks = username.split('');
+      let includedSymbols = restrictedSymbols.filter(s => chunks.includes(s));
+      return includedSymbols
+    })();
+
+    if (symbolsInUsername.length) 
+      return res.status(400).send(`Username can't contain symbols ${symbolsInUsername.join(' ')}`);
+    
+    // USER EXISTS
+    client = await getDbClient();
+    const db = client.db(DB_NAME);
+    const coll = db.collection(COLL_NAME);
+
+    const alreadyPresentUser = await coll.findOne({ username });
+    if (alreadyPresentUser) {
+      return res.status(409).send('User with this username already present');
+    }
+
+    // ADD USER TO DB
+    const userDetails = {
+      username,
+      password,
+      joiningDate: new Date(),
+      lastActive: this.joiningDate,
+      avatar: '',
+      bio: 'Hi, I am on Chatly',
+      friends: [],
+    }
+
+    const inserted = await coll.insertOne(userDetails);
+
+    if (!inserted) {
+      return res.status(500).send('User not created');
+    }
+
+    // LOGIN AFTER CREATING ACCOUNT
+    const token = await getNewToken(username);
+    res.cookie('token', token, {
+      httpOnly: true,
+      secure: true,
+      maxAge: 60 * 60 * 1000 // ms
+    });
+
+    delete userDetails.password;
+
+    res.send(userDetails);
   } catch (err) {
     console.log('ERROR while creating user:', err);
     res.status(500).send('Something went wrong, please contact administrator');
+  } finally {
+    await client.close();
   }
 });
 
 function getUserDetails(username) {
-  const allUsers = fs.readFileSync(USERS_FILE_PATH, 'utf8').split('\n');
-  let user = allUsers.find(userDetails => {
-    return userDetails.split(',')[0].toLowerCase() == username.toLowerCase()
+  return new Promise(async (resolve, reject) => {
+    let client;
+    try {
+      client = await getDbClient();
+      const db = client.db(DB_NAME);
+      const coll = db.collection(COLL_NAME);
+      const user = await coll.findOne({ username });
+  
+      if (user) {
+        delete user.password;
+        delete user._id;
+      }
+  
+      resolve(user);
+    } catch (err) {
+      reject(err);      
+    } finally {
+      client.close();
+    }
   });
-  if (!user) return null;
-
-  user = user.split(',');
-  const userDetails = {
-    username: user[0],
-    // password from user[1] skipped
-    joiningDate: user[2],
-    avatar: user[3],
-    bio: user[4],
-    friends: JSON.parse(user[5])
-  }
-  return userDetails;
 }
 
 function verifyPassword(username, password) {
-  const allUsers = fs.readFileSync(USERS_FILE_PATH, 'utf8').split('\n');
-  let user = allUsers.find(userDetails => {
-    return userDetails.split(',')[0].toLowerCase() == username.toLowerCase()
-  });
-  if (!user) return false;
+  return new Promise(async (resolve, reject) => {
+    let client;
+    try {
+      client = await getDbClient();
+      const db = client.db(DB_NAME);
+      const coll = db.collection(COLL_NAME);
+      const user = await coll.findOne({ username });
 
-  const savedPassword = user.split(',')[1];
-  return savedPassword === password;
+      if (!user) return reject('Invalid username');
+      
+      resolve(user.password === password);
+    } catch (err) {
+      reject(err)
+    } finally {
+      client.close();
+    }
+  });
+}
+
+function addFriend(username, friendName) {
+  return new Promise(async (resolve, reject) => {
+    let client;
+    try {
+      client = await getDbClient();
+      const db = client.db(DB_NAME);
+      const coll = db.collection(COLL_NAME);
+
+      const user = await coll.findOne({ username });
+      const friend = await coll.findOne({ username: friendName });
+
+      if (!user || !friend)
+        return reject('Can\'t find given users');
+
+      user.friends.push(friendName)
+      friend.friends.push(username)
+      
+      await coll.updateOne({ username }, {
+        $set: {
+          friends: user.friends
+        }
+      });
+
+      await coll.updateOne({ username: friendName }, {
+        $set: {
+          friends: friend.friends
+        }
+      });
+      resolve(true);
+    } catch (err) {
+      reject(err);
+    } finally {
+      client.close();
+    }
+  })
 }
 
 module.exports = {
   router,
   getUserDetails,
-  verifyPassword
+  verifyPassword,
+  addFriend
 };

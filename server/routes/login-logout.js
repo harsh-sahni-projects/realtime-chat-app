@@ -12,13 +12,13 @@ router.post('/login', async (req, res) => {
     if (!username) return res.status(400).send('Invalid username');
     if (!password) return res.status(400).send('Invalid password');
 
-    username = username.trim().toLowerCase();
+    // username = username.trim().toLowerCase();
     
-    const userDetails = getUserDetails(username);
+    const userDetails = await getUserDetails(username);
     if (!userDetails)
       return res.status(404).send('Incorrect username');
 
-    if (!verifyPassword(username, password))
+    if (!await verifyPassword(username, password))
       return res.status(401).send('Incorrect password');
 
     const token = await getNewToken(username);

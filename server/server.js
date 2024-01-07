@@ -1,8 +1,17 @@
 const express = require('express');
 const cookieParser = require('cookie-parser');
-const { config } = require('dotenv');
-config();
+const http = require('http');
+const { Server } = require('socket.io');
+const app = express();
+const server = http.createServer(app);
+const io = new Server(server, {
+  cors: {
+    origin: ["http://localhost:5173"],
+    credentials: true
+  }
+});
 
+require('dotenv').config();
 const { router: userManagerRouter } = require('./routes/user-manager.js');
 const { router: loginLogoutRouter } = require('./routes/login-logout.js');
 const { router: checkTokenRouter } = require('./routes/check-token.js');
@@ -10,8 +19,6 @@ const { router: addFriendRouter } = require('./routes/add-friend.js');
 const { router: getFriendsListRouter } = require('./routes/get-friends-list.js');
 
 const PORT = process.env.PORT;
-
-const app = express();
 
 app.use(express.json());
 app.use(cookieParser());
@@ -22,6 +29,12 @@ app.use((req, res, next) => {
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   next();
 });
+
+io.on('connection', (socket) => {
+  console.log('A user connected');
+  console.log('socket.request.headers.cookie:', socket.request.headers.cookie);
+  console.log('socket.id:', socket.id)
+})
 
 app.use('/', userManagerRouter);
 app.use('/', loginLogoutRouter);
@@ -61,6 +74,6 @@ app.use('/', getFriendsListRouter);
 
 // ----------------------------------------
 
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log(`Server listening on port ${PORT}`);
 });

@@ -1,10 +1,13 @@
 import { useSelector } from 'react-redux';
+import io from'socket.io-client';
 
 import nochatSvg from '/nochat.svg';
 import profileIcon from '/profile-icon.png';
+import { SERVER_URL } from '../assets/constants';
 
 import Header from './Header';
 
+const socket = io.connect(SERVER_URL, { withCredentials: true })
 
 const ChatSection = (props) => {
   const userDetails = useSelector(state => state.user.user);

@@ -32,8 +32,8 @@ app.use((req, res, next) => {
 
 io.on('connection', (socket) => {
   console.log('A user connected');
-  console.log('socket.request.headers.cookie:', socket.request.headers.cookie);
-  console.log('socket.id:', socket.id)
+  // console.log('socket.request.headers.cookie:', socket.request.headers.cookie);
+  // console.log('socket.id:', socket.id)
 })
 
 app.use('/', userManagerRouter);

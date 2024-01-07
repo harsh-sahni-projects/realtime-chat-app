@@ -7,8 +7,9 @@ import { IoIosLogOut } from "react-icons/io";
 import { IoMdAdd } from "react-icons/io";
 import { HiOutlineDotsHorizontal } from "react-icons/hi";
 
-import nochatSvg from '/nochat.svg';
 import profileIcon from '/profile-icon.png';
+import ChatSection from './ChatSection';
+import Header from './Header';
 
 import { SERVER_URL } from '../assets/constants';
 import { authActions } from '../store/auth-slice';
@@ -21,7 +22,6 @@ const Dashboard = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const userDetails = useSelector(state => state.user.user);
-  const activeFriend = useSelector(state => state.user.activeFriend);
 
   useEffect(() => {
     const checkToken = async () => {
@@ -35,6 +35,7 @@ const Dashboard = () => {
         if (err?.response?.data) {
           alert(err.response.data);
           dispatch(userActions.setUser(null));
+          dispatch(userActions.setActiveFriend(null));
           dispatch(authActions.logout());
           navigate('/');
         } else {
@@ -48,15 +49,12 @@ const Dashboard = () => {
   return (
     <div className="flex h-screen min-h-screen">
       <ProfileSection
-        userDetails={userDetails}
         className="w-[20%] p-4 flex flex-col
           bg-gradient-to-b1 from-violet-400 to-blue-300 bg-violet-600 text-white"/>
       <Friends
-        userDetails={userDetails} activeFriend={activeFriend}
         className="w-[20%] p-4 relative"/>
       <ChatSection
-        userDetails={userDetails} activeFriend={activeFriend}
-        className="w-[60%] p-4 border-l-2"
+        className="w-[60%] border-l-2"
       />
     </div>
   )
@@ -64,7 +62,8 @@ const Dashboard = () => {
 
 function ProfileSection(props) {
   const classes = props.className;
-  const { username, bio } = props.userDetails ?? { username: '', bio: ''};
+  const userDetails = useSelector(state => state.user.user);
+  const { username, bio } = userDetails ?? { username: '', bio: ''};
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
@@ -76,6 +75,7 @@ function ProfileSection(props) {
       if (res.status == 200) {
         dispatch(authActions.logout());
         dispatch(userActions.setUser(null));
+        dispatch(userActions.setActiveFriend(null));
         navigate('/');
       }
     } catch (err) {
@@ -111,9 +111,13 @@ function ProfileSection(props) {
 }
 
 function Friends(props) {
-  const dispatch = useDispatch();
-  const [friends, setFriends] = useState(props.userDetails?.friends ?? []);
   const classes = props.className;
+  
+  const dispatch = useDispatch();
+  const userDetails = useSelector(state => state.user.user);
+  const activeFriend = useSelector(state => state.user.activeFriend);
+
+  const [friends, setFriends] = useState(userDetails?.friends ?? []);
   const [addFriendFormVisible, setAddFriendFormVisible] = useState(false);
   const [friendsListLoading, setFriendsListLoading] = useState(false);
 
@@ -138,13 +142,17 @@ function Friends(props) {
     }
   }
 
+  const setActiveFriend = (friendName) => {
+    dispatch(userActions.setActiveFriend(friendName));
+  }
+
   useEffect(() => {
     // refreshFriendsListFn();
   }, [])
 
   return (
     <div className={classes}>
-      <Header>
+      <Header className="">
         <h1 className="text-xl font-semibold text-violet-800 pb-2">
           {addFriendFormVisible ? "Add Friend" : "Messages"}
         </h1>
@@ -165,7 +173,11 @@ function Friends(props) {
       }
 
       {!addFriendFormVisible && friends.map((friend, i) => (
-        <div key={i} className="p-2 flex hover:bg-violet-100 hover:shadow-sm cursor-pointer rounded-md">
+        <div key={i}
+          className={`${"p-2 flex hover:bg-violet-100 hover:shadow-sm cursor-pointer rounded-md my-1 "
+            + ((friend == activeFriend) ? " bg-violet-100" : "")}`}
+          onClick={() => setActiveFriend(friend)}
+        >
           <section>
             <div className="w-[50px] h-[50px] bg-slate-100 rounded-full">
               <img src={profileIcon} alt="Profile image here" className=""/>
@@ -235,43 +247,6 @@ function AddFriendForm(props) {
   )
 }
 
-function Header(props) {
-  const children = props.children;
-  const classes = "border-0 py-4 " + (props.className ? props.className : '');
-  return (
-    <div className={classes}>
-      {children}
-    </div>
-  )
-}
 
-function ChatSection(props) {
-  let { userDetails, activeFriend } = props;
-  const classes = props.className;
-  activeFriend = null;
-
-  return (
-    <div className={classes}>
-      {!activeFriend && <EmptyChatSection/>}
-      { activeFriend &&
-      <>
-        <Header>
-          Heading 
-        </Header>
-        <div>Welcome!!</div>
-      </>
-      }
-    </div>
-  )
-}
-
-function EmptyChatSection() {
-  return (
-    <div className="flex flex-col w-full h-full justify-center items-center">
-      <img src={nochatSvg} className="w-[30%] select-none"/>
-      <p className="mt-4 text-gray-400 italic">Please select a friend to chat or click on add a new friend button.</p>
-    </div>
-  )
-}
 
 export default Dashboard;

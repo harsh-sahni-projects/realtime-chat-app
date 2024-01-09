@@ -7,7 +7,7 @@ import { IoMdSend } from "react-icons/io";
 import { SERVER_URL } from '../assets/constants';
 
 import Header from './Header';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import { userActions } from '../store/user-slice';
 
 const socket = io.connect(SERVER_URL, { withCredentials: true })
@@ -19,10 +19,10 @@ const ChatSection = (props) => {
   const classes = props.className;
   const msgInput = useRef('');
   const msgs = useSelector(state => state.user.conversations[activeFriend]);
-  // const [msgs, setMsgs] = useState([]);
-  useEffect(() => {
-    console.log('chat-msgs:', msgs);
-  })
+
+  socket.on('connect_error', err => {
+    console.log('connect_err:', err)
+  });
 
   const sendMsg = (e) => {
     e.preventDefault();
@@ -43,8 +43,26 @@ const ChatSection = (props) => {
     
     // SEND/EMIT MSG TO SERVER
     console.log('sending to server:', msg);
-    console.log('msgObj:',  msgObj);
-    console.log('storePayload:', storePayload);
+    // console.log('msgObj:',  msgObj);
+    // console.log('storePayload:', storePayload);
+    // console.log('socket connected status:', socket.connected)
+    
+    
+    socket.emit('msg', msgObj, res => {
+      console.log('res:', res);
+    });
+
+    socket.on('msg', msg => {
+      console.log(msg)
+    })
+    socket.on('disconnect', some => {
+      console.log('disconnected chat');
+      // socket.connect();
+    });
+
+    socket.on('connect_error', err => {
+      console.log('connect_error:', err);
+    })
 
     // SAVE MSG IN STORE
     dispatch(userActions.saveNewMsg(storePayload));
@@ -61,10 +79,15 @@ const ChatSection = (props) => {
   // }, [msgs])
 
   useEffect(() => {
+    console.log('Use effect ran')
     if (msgInput.current) {
       msgInput.current.focus();
     }
-  })
+    if (!socket.connected) {
+      console.log('socket connected');
+      socket.connect()
+    }
+  },[socket.connected, msgInput.current])
   return (
     <div className={classes + " pt-4 flex flex-col"}>
       {!activeFriend && <EmptyChatSection/>}

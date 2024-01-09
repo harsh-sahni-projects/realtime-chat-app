@@ -17,6 +17,7 @@ const { router: loginLogoutRouter } = require('./routes/login-logout.js');
 const { router: checkTokenRouter } = require('./routes/check-token.js');
 const { router: addFriendRouter } = require('./routes/add-friend.js');
 const { router: getFriendsListRouter } = require('./routes/get-friends-list.js');
+const { verifyToken } = require('./common/token-manager.js');
 
 const PORT = process.env.PORT;
 
@@ -30,11 +31,54 @@ app.use((req, res, next) => {
   next();
 });
 
+const activeSessions = {
+
+}
+
+io.use(async (socket, next) => {
+  let allCookies = socket.handshake.headers.cookie;
+  console.log('cookies str', allCookies)
+  if (!allCookies) {
+    next(new Error('Session expired')); // will emit "connect_err" on client
+    return;
+  }
+  let token;
+  allCookies.split(/;\s*/).forEach(cookieStr => {
+    const [name, value] = cookieStr.split('=');
+    if (name === 'token') token = value;
+  });
+  console.log('token:', token);
+  if (!token) {
+    next(new Error('Session expired'));
+    return
+  }
+
+  try {
+    const decodedToken = verifyToken(token);
+    const username = decodedToken.username;
+    socket.request['credentials'] = {
+      username
+    }
+    next();
+  } catch (err) {
+    next(new Error(err.message));
+  }
+})
+
+
 io.on('connection', (socket) => {
   console.log('A user connected');
   // console.log('socket.request.headers.cookie:', socket.request.headers.cookie);
-  // console.log('socket.id:', socket.id)
-})
+  console.log('socket.id:', socket.id)
+  console.log('socket.req.credentials', socket.request.credentials);
+
+  socket.on('msg', (data, callback) => {
+    console.log(data);
+    // socket.disconnect();
+    callback('res from server');
+    socket.emit('msg', data)
+  });
+});
 
 app.use('/', userManagerRouter);
 app.use('/', loginLogoutRouter);

@@ -10,7 +10,7 @@ import Header from './Header';
 import { useEffect, useRef } from 'react';
 import { userActions } from '../store/user-slice';
 
-const socket = io.connect(SERVER_URL, { withCredentials: true })
+const socket = io.connect(SERVER_URL, { withCredentials: true });
 
 const ChatSection = (props) => {
   const dispatch = useDispatch();
@@ -23,6 +23,26 @@ const ChatSection = (props) => {
   socket.on('connect_error', err => {
     console.log('connect_err:', err)
   });
+
+  socket.on('disconnect', some => {
+    console.log('disconnected chat', some);
+    // alert('Connection lost');
+    // socket.connect();
+  });
+
+  socket.off('msg').on('msg', msgObj => {
+    console.log('From server:', msgObj.msg);
+    const storePayload = {
+      friend: msgObj.receiver,
+      msgObj
+    }
+    dispatch(userActions.saveNewMsg(storePayload));
+  });
+  
+
+  socket.on('connect_error', err => {
+    console.log('connect_error:', err);
+  })
 
   const sendMsg = (e) => {
     e.preventDefault();
@@ -42,31 +62,23 @@ const ChatSection = (props) => {
     }
     
     // SEND/EMIT MSG TO SERVER
-    console.log('sending to server:', msg);
+    // console.log('sending to server:', msg);
     // console.log('msgObj:',  msgObj);
     // console.log('storePayload:', storePayload);
     // console.log('socket connected status:', socket.connected)
     
-    
+    // if (!socket.connected) {
+    //   socket.connect();
+    // }
+
+    console.log('Sending to server...:', msg);
     socket.emit('msg', msgObj, res => {
-      console.log('res:', res);
+      dispatch(userActions.saveNewMsg(storePayload));
+      // console.log('res:', res);
     });
-
-    socket.on('msg', msg => {
-      console.log(msg)
-    })
-    socket.on('disconnect', some => {
-      console.log('disconnected chat');
-      // socket.connect();
-    });
-
-    socket.on('connect_error', err => {
-      console.log('connect_error:', err);
-    })
 
     // SAVE MSG IN STORE
-    dispatch(userActions.saveNewMsg(storePayload));
-    console.log('chat - msgs:', msgs);
+    // console.log('chat - msgs:', msgs);
     
     // setMsgs(msgs => { 
     //   const newMsgs = [...msgs, msg]
@@ -84,10 +96,15 @@ const ChatSection = (props) => {
       msgInput.current.focus();
     }
     if (!socket.connected) {
-      console.log('socket connected');
+      console.log('socket connected in useeffect');
       socket.connect()
     }
-  },[socket.connected, msgInput.current])
+    // return () => {
+    //   socket.off('msg');
+    //   socket.removeListener('msg');
+    // }
+  },[socket.connected, msgInput.current]);
+
   return (
     <div className={classes + " pt-4 flex flex-col"}>
       {!activeFriend && <EmptyChatSection/>}

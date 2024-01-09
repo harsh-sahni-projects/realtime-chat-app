@@ -35,7 +35,6 @@ const userSlice = createSlice({
     saveNewMsg(state, action) {
       const { friend, msgObj } = action.payload;
       state.conversations[friend].push(msgObj);
-      console.log('slice - saved msg:', action.payload);
     }
   }
 });

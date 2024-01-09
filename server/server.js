@@ -37,7 +37,7 @@ const activeSessions = {
 
 io.use(async (socket, next) => {
   let allCookies = socket.handshake.headers.cookie;
-  console.log('cookies str', allCookies)
+  // console.log('cookies str', allCookies)
   if (!allCookies) {
     next(new Error('Session expired')); // will emit "connect_err" on client
     return;
@@ -47,7 +47,7 @@ io.use(async (socket, next) => {
     const [name, value] = cookieStr.split('=');
     if (name === 'token') token = value;
   });
-  console.log('token:', token);
+  // console.log('token:', token);
   if (!token) {
     next(new Error('Session expired'));
     return
@@ -71,13 +71,21 @@ io.on('connection', (socket) => {
   // console.log('socket.request.headers.cookie:', socket.request.headers.cookie);
   console.log('socket.id:', socket.id)
   console.log('socket.req.credentials', socket.request.credentials);
+  const username = socket.request.credentials.username;
+  // socket.join(username);
 
   socket.on('msg', (data, callback) => {
-    console.log(data);
+    const receiver = data.receiver;
+    // socket.to(receiver).emit('msg', data);
+    console.log('sending to client msg:', data.msg)
+    socket.emit('msg', data);
+    // console.log(data);
     // socket.disconnect();
     callback('res from server');
-    socket.emit('msg', data)
   });
+  socket.on('disconnect', reason => {
+    console.log('USER DISCONNECTED ID/reason:', socket.id, '/', reason);
+  })
 });
 
 app.use('/', userManagerRouter);

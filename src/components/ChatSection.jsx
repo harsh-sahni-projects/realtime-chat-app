@@ -18,7 +18,9 @@ const ChatSection = (props) => {
   const activeFriend = useSelector(state => state.user.activeFriend);
   const classes = props.className;
   const msgInput = useRef('');
+  const chatAreaDiv = useRef(null);
   const msgs = useSelector(state => state.user.conversations[activeFriend]);
+
 
   socket.on('connect_error', err => {
     console.log('connect_err:', err)
@@ -32,16 +34,19 @@ const ChatSection = (props) => {
 
   socket.off('msg').on('msg', msgObj => {
     console.log('From server:', msgObj.msg);
-    const storePayload = {
-      friend: msgObj.receiver,
-      msgObj
-    }
-    dispatch(userActions.saveNewMsg(storePayload));
+    dispatch(userActions.saveNewMsg(msgObj));
+    setTimeout(() => {
+      if (chatAreaDiv.current) {
+        chatAreaDiv.current.scrollTo({top: chatAreaDiv.current.scrollHeight, behavior: 'smooth'})
+      }
+    }, 0)
   });
   
 
   socket.on('connect_error', err => {
     console.log('connect_error:', err);
+    // alert('Session expired. Please login again');
+    window.location.href = '/';
   })
 
   const sendMsg = (e) => {
@@ -56,10 +61,6 @@ const ChatSection = (props) => {
       timestamp: date.toString(),
       isRead: false
     }
-    const storePayload = {
-      friend: activeFriend,
-      msgObj
-    }
     
     // SEND/EMIT MSG TO SERVER
     // console.log('sending to server:', msg);
@@ -67,13 +68,20 @@ const ChatSection = (props) => {
     // console.log('storePayload:', storePayload);
     // console.log('socket connected status:', socket.connected)
     
-    // if (!socket.connected) {
-    //   socket.connect();
-    // }
+    if (!socket.connected) {
+      socket.connect();
+    }
 
-    console.log('Sending to server...:', msg);
+    console.log('Sending to server...:', msgObj);
     socket.emit('msg', msgObj, res => {
-      dispatch(userActions.saveNewMsg(storePayload));
+      console.log('Saving msg obj to store:', msgObj)
+      dispatch(userActions.saveNewMsg(msgObj));
+      msgInput.current.value = '';
+      setTimeout(() => {
+        if (chatAreaDiv.current) {
+          chatAreaDiv.current.scrollTo({top: chatAreaDiv.current.scrollHeight, behavior: 'smooth'})
+        }
+      }, 0)
       // console.log('res:', res);
     });
 
@@ -90,6 +98,19 @@ const ChatSection = (props) => {
   //   console.log('msgs changed--------');
   // }, [msgs])
 
+  const getTime = (timestamp) => {
+    const date = new Date(timestamp);
+    let hours = date.getHours();
+    const minutes = date.getMinutes().toString().padStart(2, '0');
+
+    const amPm = hours >= 12 ? 'PM' : 'AM';
+    hours %= 12;
+    hours = hours === 0 ? 12 : hours;
+
+    const formattedTime = `${hours}:${minutes} ${amPm}`;
+    return formattedTime;
+  }
+
   useEffect(() => {
     console.log('Use effect ran')
     if (msgInput.current) {
@@ -99,11 +120,14 @@ const ChatSection = (props) => {
       console.log('socket connected in useeffect');
       socket.connect()
     }
+    if (chatAreaDiv.current) {
+      chatAreaDiv.current.scrollTo({top: chatAreaDiv.current.scrollHeight})
+    }
     // return () => {
     //   socket.off('msg');
     //   socket.removeListener('msg');
     // }
-  },[socket.connected, msgInput.current]);
+  },[socket.connected, msgInput.current, chatAreaDiv.current]);
 
   return (
     <div className={classes + " pt-4 flex flex-col"}>
@@ -118,12 +142,20 @@ const ChatSection = (props) => {
           </h1>
         </Header>
         <div className="px-4 flex flex-col flex-1 overflow-hidden">
-          <div className="flex-1 py-2 flex flex-col border-2 overflow-auto pr-2">
+          <div ref={chatAreaDiv} className="flex-1 py-2 flex flex-col border-2 overflow-auto pr-2">
             {msgs && msgs.map((msgObj,i) => 
               <div key={i}
-                className={`border max-w-[80%] my-1 p-2 px-4 rounded-xl text-white 
-                  ${(msgObj.sender == userDetails.username) ? "bg-violet-500 self-end" : ""}`}>
+                className={`border max-w-[80%] w-fit my-1 pt-2 px-4 pb-6 rounded-xl relative min-w-24
+                  ${(msgObj.sender == userDetails.username)
+                    ? " text-white bg-violet-500 self-end"
+                    : " text-slate-800"}`}>
                 {msgObj.msg}
+                <div className={`text-xs borderr text-right absolute right-2 bottom-1 right-2
+                ${(msgObj.sender == userDetails.username)
+                  ? " text-violet-300"
+                  : " text-slate-300"}`}>
+                  {getTime(msgObj.timestamp)}
+                </div>
               </div>)}
           </div>
           <form className="flex gap-2 my-2 items-center" onSubmit={sendMsg}>

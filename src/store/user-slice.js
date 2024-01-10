@@ -33,8 +33,16 @@ const userSlice = createSlice({
       });
     },
     saveNewMsg(state, action) {
-      const { friend, msgObj } = action.payload;
-      state.conversations[friend].push(msgObj);
+      console.log('userslice msgObj:', action.payload)
+      const msgObj = action.payload;
+      const { sender, receiver } = msgObj;
+
+      if (sender == state.user.username) { // current user has sent msg
+        state.conversations[receiver].push(msgObj);
+      } else { // current user has received msg from friend
+        state.conversations[sender].push(msgObj);
+      }
+      
     }
   }
 });

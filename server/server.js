@@ -72,14 +72,14 @@ io.on('connection', (socket) => {
   console.log('socket.id:', socket.id)
   console.log('socket.req.credentials', socket.request.credentials);
   const username = socket.request.credentials.username;
-  // socket.join(username);
+  socket.join(username);
 
-  socket.on('msg', (data, callback) => {
-    const receiver = data.receiver;
-    // socket.to(receiver).emit('msg', data);
-    console.log('sending to client msg:', data.msg)
-    socket.emit('msg', data);
-    // console.log(data);
+  socket.on('msg', (msgObj, callback) => {
+    const receiver = msgObj.receiver;
+    // socket.to(receiver).emit('msg', msgObj);
+    console.log('sending to client msg:', msgObj.msg)
+    socket.to(receiver).emit('msg', msgObj);
+    // console.log(msgObj);
     // socket.disconnect();
     callback('res from server');
   });

@@ -31,10 +31,6 @@ app.use((req, res, next) => {
   next();
 });
 
-const activeSessions = {
-
-}
-
 io.use(async (socket, next) => {
   let allCookies = socket.handshake.headers.cookie;
   // console.log('cookies str', allCookies)
@@ -63,16 +59,20 @@ io.use(async (socket, next) => {
   } catch (err) {
     next(new Error(err.message));
   }
-})
+});
 
+let activeRooms = {};
+let lastSeenRecords = {};
 
 io.on('connection', (socket) => {
-  console.log('A user connected');
   // console.log('socket.request.headers.cookie:', socket.request.headers.cookie);
-  console.log('socket.id:', socket.id)
-  console.log('socket.req.credentials', socket.request.credentials);
+  // console.log('socket.id:', socket.id)
+  // console.log('socket.req.credentials', socket.request.credentials);
   const username = socket.request.credentials.username;
+  console.log('A user connected:', username);
+
   socket.join(username);
+  activeRooms[username] = true;
 
   socket.on('msg', (msgObj, callback) => {
     const receiver = msgObj.receiver;
@@ -83,9 +83,21 @@ io.on('connection', (socket) => {
     // socket.disconnect();
     callback('res from server');
   });
+
+  socket.on('isOnline', (friend, callback) => {
+    console.log(activeRooms, lastSeenRecords, friend)
+    console.log('isonline:', activeRooms[friend])
+    let res = {
+      isOnline: activeRooms[friend] || false,
+      lastSeen: lastSeenRecords[friend] || false
+    }
+    callback(res);
+  })
   socket.on('disconnect', reason => {
     console.log('USER DISCONNECTED ID/reason:', socket.id, '/', reason);
-  })
+    delete activeRooms[username];
+    console.log('Updated active rooms:', activeRooms)
+  });
 });
 
 app.use('/', userManagerRouter);

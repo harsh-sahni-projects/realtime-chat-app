@@ -1,4 +1,5 @@
 import { useDispatch, useSelector } from 'react-redux';
+import { useState } from 'react';
 import io from'socket.io-client';
 
 import nochatSvg from '/nochat.svg';
@@ -7,15 +8,18 @@ import { IoMdSend } from "react-icons/io";
 import { SERVER_URL } from '../assets/constants';
 
 import Header from './Header';
+import LastSeen from './LastSeen';
 import { useEffect, useRef } from 'react';
 import { userActions } from '../store/user-slice';
 
-const socket = io.connect(SERVER_URL, { withCredentials: true });
+let socket = io.connect(SERVER_URL, { withCredentials: true });
 
 const ChatSection = (props) => {
   const dispatch = useDispatch();
   const userDetails = useSelector(state => state.user.user);
   const activeFriend = useSelector(state => state.user.activeFriend);
+  const [friendOnline, setFriendOnline] = useState(false);
+  const [lastSeen, setLastSeen] = useState(null);
   const classes = props.className;
   const msgInput = useRef('');
   const chatAreaDiv = useRef(null);
@@ -27,19 +31,36 @@ const ChatSection = (props) => {
   });
 
   socket.on('disconnect', some => {
-    console.log('disconnected chat', some);
+    // console.log('disconnected chat', some);
     // alert('Connection lost');
     // socket.connect();
   });
 
   socket.off('msg').on('msg', msgObj => {
-    console.log('From server:', msgObj.msg);
+    // console.log('From server:', msgObj.msg);
     dispatch(userActions.saveNewMsg(msgObj));
     setTimeout(() => {
       if (chatAreaDiv.current) {
         chatAreaDiv.current.scrollTo({top: chatAreaDiv.current.scrollHeight, behavior: 'smooth'})
       }
     }, 0)
+  });
+
+  socket.off('showMeOnline').on('showMeOnline', friend => {
+    // console.log('showMeOnline:', friend);
+    if (activeFriend == friend) {
+      setFriendOnline(true);
+      setLastSeen(null);
+    }
+  });
+
+  socket.off('showMeOffline').on('showMeOffline', data => {
+    // console.log('Went OFFLINE:', data)
+    const { friend, lastSeen } = data;
+    if (activeFriend == friend) {
+      setFriendOnline(false);
+      setLastSeen(lastSeen);
+    }
   });
   
 
@@ -62,19 +83,12 @@ const ChatSection = (props) => {
       isRead: false
     }
     
-    // SEND/EMIT MSG TO SERVER
-    // console.log('sending to server:', msg);
-    // console.log('msgObj:',  msgObj);
-    // console.log('storePayload:', storePayload);
-    // console.log('socket connected status:', socket.connected)
     
     if (!socket.connected) {
       socket.connect();
     }
 
-    console.log('Sending to server...:', msgObj);
     socket.emit('msg', msgObj, res => {
-      console.log('Saving msg obj to store:', msgObj)
       dispatch(userActions.saveNewMsg(msgObj));
       msgInput.current.value = '';
       setTimeout(() => {
@@ -82,21 +96,10 @@ const ChatSection = (props) => {
           chatAreaDiv.current.scrollTo({top: chatAreaDiv.current.scrollHeight, behavior: 'smooth'})
         }
       }, 0)
-      // console.log('res:', res);
     });
 
-    // SAVE MSG IN STORE
-    // console.log('chat - msgs:', msgs);
-    
-    // setMsgs(msgs => { 
-    //   const newMsgs = [...msgs, msg]
-    //   return newMsgs;
-    // });
   }
 
-  // useEffect(() => {
-  //   console.log('msgs changed--------');
-  // }, [msgs])
 
   const getTime = (timestamp) => {
     const date = new Date(timestamp);
@@ -112,12 +115,30 @@ const ChatSection = (props) => {
   }
 
   useEffect(() => {
-    console.log('Use effect ran')
+    if (!activeFriend) return;
+    socket.emit('isOnline', activeFriend, res => {
+      if (res.isOnline) {
+        setFriendOnline(true);
+        setLastSeen(null);
+      } else {
+        setFriendOnline(false);
+        let date = res.lastSeen;
+        if (date) {
+          setLastSeen(date);
+        } else {
+          setLastSeen(null); 
+        }
+      }
+    })
+  }, [activeFriend])
+
+  useEffect(() => {
+    // console.log('Use effect ran')
     if (msgInput.current) {
       msgInput.current.focus();
     }
     if (!socket.connected) {
-      console.log('socket connected in useeffect');
+      // console.log('socket connected in useeffect');
       socket.connect()
     }
     if (chatAreaDiv.current) {
@@ -127,6 +148,9 @@ const ChatSection = (props) => {
     //   socket.off('msg');
     //   socket.removeListener('msg');
     // }
+    return () => {
+      socket.disconnect();
+    }
   },[socket.connected, msgInput.current, chatAreaDiv.current]);
 
   return (
@@ -135,22 +159,25 @@ const ChatSection = (props) => {
       { activeFriend &&
       <>
         <Header className="px-4 border-b border-violet-200">
-          <h1 className="text-xl font-bold text-violet-800 flex items-center gap-2">
+          <h1 className="flex items-center gap-2">
             <img src={profileIcon} alt="Profile image here"
               className="w-[35px] h-[35px] bg-slate-100 rounded-full inline"/>
-            {activeFriend}
+            <div>
+              <div className="text-xl font-bold text-violet-800 ">{activeFriend}</div>
+              <LastSeen isOnline={friendOnline} lastSeen={lastSeen} />
+            </div>
           </h1>
         </Header>
         <div className="px-4 flex flex-col flex-1 overflow-hidden">
-          <div ref={chatAreaDiv} className="flex-1 py-2 flex flex-col border-2 overflow-auto pr-2">
+          <div ref={chatAreaDiv} className="flex-1 py-2 flex flex-col overflow-auto pr-2">
             {msgs && msgs.map((msgObj,i) => 
               <div key={i}
                 className={`border max-w-[80%] w-fit my-1 pt-2 px-4 pb-6 rounded-xl relative min-w-24
                   ${(msgObj.sender == userDetails.username)
                     ? " text-white bg-violet-500 self-end"
-                    : " text-slate-800"}`}>
+                    : " text-violet-900 bg-violet-50"}`}>
                 {msgObj.msg}
-                <div className={`text-xs borderr text-right absolute right-2 bottom-1 right-2
+                <div className={`text-xs text-right absolute right-2 bottom-1
                 ${(msgObj.sender == userDetails.username)
                   ? " text-violet-300"
                   : " text-slate-300"}`}>

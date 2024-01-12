@@ -33,6 +33,7 @@ const LoginForm = (props) => {
       const userDetails = res.data;
       dispatch(authActions.login());
       dispatch(userActions.setUser(userDetails));
+      dispatch(userActions.setActiveFriend(null));
       navigate('/dashboard')
     } catch(err) {
       const errMsg = (err?.response?.data) ? err.response.data : err.message;

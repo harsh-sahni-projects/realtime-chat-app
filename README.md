@@ -9,6 +9,11 @@ This is a realtime chat application
 * TailwindCSS
 * NodeJS
 * ExpressJS
-* Cookies & JWTs
 * Socket.io
 * MongoDB
+* Cookies & JWTs
+
+# Features
+
+* Realtime chat
+* Last seen time / Online status 

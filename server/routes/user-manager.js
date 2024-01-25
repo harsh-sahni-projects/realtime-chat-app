@@ -95,7 +95,7 @@ function getUserDetails(username) {
     } catch (err) {
       reject(err);      
     } finally {
-      client.close();
+      if (client) client.close();
     }
   });
 }

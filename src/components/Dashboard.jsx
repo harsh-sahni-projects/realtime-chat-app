@@ -6,6 +6,8 @@ import { useSelector, useDispatch } from 'react-redux';
 import { IoIosLogOut } from "react-icons/io";
 import { IoMdAdd } from "react-icons/io";
 import { HiOutlineDotsHorizontal } from "react-icons/hi";
+import { FaLinkedin } from "react-icons/fa";
+import { FaGithub } from "react-icons/fa";
 
 import profileIcon from '/profile-icon.png';
 import ChatSection from './ChatSection';
@@ -89,6 +91,7 @@ function ProfileSection(props) {
 
   return (
     <div className={classes + " justify-between text-center"}>
+      {/* CHATLY HEADING */}
       <section className="flex flex-col">
         <Header>
           <h1 className="text-4xl font-bold text-center">Chatly</h1>
@@ -99,6 +102,19 @@ function ProfileSection(props) {
         <h2 className="text-4xl py-3 text-center font-semibold">{username}</h2>
         <h3>{bio}</h3>
       </section>
+
+      {/* DEVELOPER INFO SECTION */}
+      <section className="text-violet-300 bordrr italic flex flex-col items-center ">
+        <div className="">Developed by:</div>
+        <div className="text-2xl mb-3 font-bold">Harsh Sahni</div>
+        {/* <div>(Full Stack Dev 6yr exp)</div> */}
+        <section className="text-left borderr">
+          <div><FaLinkedin className="inline my-2 mr-1"/> <a href="https://www.linkedin.com/in/harsh-sahni" target="_blank">LinkedIn</a></div>
+          <div><FaGithub className="inline mr-1"/> <a href="https://www.github.com/harsh-sahni-projects" target="_blank">Github</a></div>
+        </section>
+      </section>
+
+      {/* LOGOUT BUTTON */}
       <button
         onClick={handleLogout}
         className="text-xl justify-center font-semibold flex items-center
@@ -130,7 +146,7 @@ function Friends(props) {
     try {
       const endpoint = SERVER_URL + '/get-friends-list';
       const res = await axios.get(endpoint);
-      const friends = res.data;
+      let friends = res.data;
       setFriends([...friends]);
       dispatch(userActions.updateFriendsList(friends))
     } catch (err) {

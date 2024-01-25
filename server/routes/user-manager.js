@@ -4,7 +4,7 @@ const router = express.Router();
 const { getNewToken } = require('../common/token-manager.js');
 const getDbClient = require('../common/db-client.js');
 const DB_NAME = process.env.DB_NAME;
-const COLL_NAME = 'users';
+const COLL_NAME = process.env.USERS_COLL_NAME;
 
 router.post('/create-new-account', async (req, res) => {
   let client;

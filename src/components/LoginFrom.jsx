@@ -15,7 +15,7 @@ const LoginForm = (props) => {
   const [ username, setUsername ] = useState('');
   const [ password, setPassword ] = useState('');
   const [ isLoading, setIsLoading ] = useState(false);
-  const [ showGuestUsers, setShowGuestUsers ] = useState(true);
+  const [ showGuestUsers, setShowGuestUsers ] = useState(false);
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const usernameInput = useRef(null);

@@ -1,1 +1,1 @@
-export const SERVER_URL = 'http://localhost:3000'; // don't add "/" at end
+export const SERVER_URL = import.meta.env.VITE_SERVER_URL;

@@ -8,6 +8,8 @@ import { useDispatch } from "react-redux";
 import { userActions } from "../store/user-slice";
 import { authActions } from "../store/auth-slice";
 
+import { HiOutlineDotsHorizontal } from "react-icons/hi";
+
 
 const SignupForm = (props) => {
   const { setSignupFormVisible } = props;
@@ -16,6 +18,7 @@ const SignupForm = (props) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [ isLoading, setIsLoading ] = useState(false);
 
   let errorClass = 'border-red-400';
   let inputFiledStyles = "outline-none px-4 py-2 rounded-full w-96 focus:border-violet-400 border-2 ";
@@ -64,6 +67,7 @@ const SignupForm = (props) => {
   const handleSignup = async (e) => {
     try {
       e.preventDefault();
+      setIsLoading(true);
   
       const isFormValid = validateForm();
       if (!isFormValid) return;
@@ -75,7 +79,6 @@ const SignupForm = (props) => {
       }
       const endpoint = SERVER_URL + '/create-new-account';
       const res = await axios.post(endpoint, payload);
-      console.log(res);
       if (res.status == 200) {
         dispatch(userActions.setUser(res.data));
         dispatch(authActions.login());
@@ -86,6 +89,8 @@ const SignupForm = (props) => {
       const errMsg = (err?.response?.data) ? err.response.data : err.message;
       console.log(err);
       alert(errMsg);
+    } finally {
+      setIsLoading(false);
     }
   }
 
@@ -113,8 +118,10 @@ const SignupForm = (props) => {
           onChange={e => setConfirmPassword(e.target.value.trim())}
           className={confirmPasswordStyles} />
         <button
-          className="w-96 rounded-full text-white bg-violet-800 hover:bg-violet-900 p-3 my-4 mt-6 font-semibold">
-          Create Account
+          className={`w-96 rounded-full text-white  p-3 my-4 mt-6 font-semibold duration-300
+            ${isLoading ? "bg-slate-300" : "bg-violet-800 hover:bg-violet-900"}`}
+          disabled={isLoading}>
+          {!isLoading ? "Create Account" : <HiOutlineDotsHorizontal className="inline animate-ping"/>}
         </button>
         <div className="mt-2 ml-2">
           <span onClick={hideSignupForm}

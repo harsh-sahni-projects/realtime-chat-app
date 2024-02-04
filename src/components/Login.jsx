@@ -9,12 +9,14 @@ import { userActions } from '../store/user-slice';
 import loginImg from '/login3.png'
 import LoginForm from './LoginFrom';
 import SignupForm from './SignupFrom';
+import { FaLinkedin } from "react-icons/fa";
 
 const Login = () => {
   const [signupFormVisible, setSignupFormVisible] = useState(false);
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const user = useSelector(state => state.user.user);
+  const year = (new Date()).getFullYear();
 
   useEffect(() => {
     async function checkToken() {
@@ -44,6 +46,17 @@ const Login = () => {
           Chatly
         </h1>
         <img src={loginImg} className="w-[40%] h-auto object-contain"/>
+        <div className="absolute w-1/2 px-8 bottom-2 flex justify-between gap-12 text-violet-100">
+          <span className="">
+            © 2024-{year}
+          </span>
+            <a href="https://www.linkedin.com/in/harsh-sahni" target="_blank">
+              Developer: &ensp; <FaLinkedin className="inline mb-1"/> Harsh Sahni
+            </a>
+          <span>
+            v1.0.0
+          </span>
+        </div>
       </div>
       {signupFormVisible
         ? <SignupForm setSignupFormVisible={setSignupFormVisible}/>

@@ -1,17 +1,16 @@
-import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import { Provider } from 'react-redux';
 import { PersistGate } from 'redux-persist/integration/react';
 
-import Login from './components/Login.jsx'
+import Home from './components/Home/Home.jsx'
 import Dashboard from './components/Dashboard.jsx';
 import { store, persistor } from './store/store'
 
 const router = createBrowserRouter([
   {
     path: '/',
-    element: <Login/>
+    element: <Home/>
   },
   {
     path: '/dashboard',

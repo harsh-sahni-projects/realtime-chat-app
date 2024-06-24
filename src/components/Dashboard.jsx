@@ -6,8 +6,6 @@ import { useSelector, useDispatch } from 'react-redux';
 import { IoIosLogOut } from "react-icons/io";
 import { IoMdAdd } from "react-icons/io";
 import { HiOutlineDotsHorizontal } from "react-icons/hi";
-import { FaLinkedin } from "react-icons/fa";
-import { FaGithub } from "react-icons/fa";
 
 import profileIcon from '/profile-icon.png';
 import ChatSection from './ChatSection';
@@ -61,7 +59,9 @@ const Dashboard = () => {
     </div>
   )
 }
-
+ProfileSection.propTypes = {
+  className: String
+}
 function ProfileSection(props) {
   const classes = props.className;
   const userDetails = useSelector(state => state.user.user);
@@ -106,12 +106,7 @@ function ProfileSection(props) {
       {/* DEVELOPER INFO SECTION */}
       <section className="text-violet-300 bordrr italic flex flex-col items-center ">
         <div className="">Developed by:</div>
-        <div className="text-2xl mb-3 font-bold">Harsh Sahni</div>
-        {/* <div>(Full Stack Dev 6yr exp)</div> */}
-        <section className="text-left borderr">
-          <div><FaLinkedin className="inline my-2 mr-1"/> <a href="https://www.linkedin.com/in/harsh-sahni" target="_blank">LinkedIn</a></div>
-          <div><FaGithub className="inline mr-1"/> <a href="https://www.github.com/harsh-sahni-projects" target="_blank">Github</a></div>
-        </section>
+        <div className="text-2xl mb-3 font-bold">Harsh</div>
       </section>
 
       {/* LOGOUT BUTTON */}

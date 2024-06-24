@@ -85,7 +85,7 @@ const Home = () => {
             © 2024. All rights reserved
           </div>
           <div>
-            Developed By - <span className="text-2xl font-bold">Harsh Sahni</span>
+            Developed By - <span className="text-2xl font-bold">Harsh</span>
           </div>
         </div>
       </section>
